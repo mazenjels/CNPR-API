@@ -58,6 +58,11 @@ public class PaymentModeServiceImpl implements PaymentModeService{
 		// TODO Auto-generated method stub
 		return (PaymentMode) paymentModeRepo.getById(id);
 	}
+	
+	public PaymentMode getPaymentModeByDesignation(String designation) {
+		// TODO Auto-generated method stub
+		return (PaymentMode) paymentModeRepo.getPaymentModeByDesignation(designation);
+	}
 
 	
 	

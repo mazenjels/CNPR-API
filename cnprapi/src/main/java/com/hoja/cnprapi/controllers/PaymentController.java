@@ -17,10 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hoja.cnprapi.models.Candidat;
 import com.hoja.cnprapi.models.CnprAutoEcole;
+import com.hoja.cnprapi.models.CnprPayment;
+import com.hoja.cnprapi.models.PaymentMode;
 import com.hoja.cnprapi.models.ViewAutoEcole;
 import com.hoja.cnprapi.models.ViewUser;
 import com.hoja.cnprapi.repository.ViewUserRepository;
 import com.hoja.cnprapi.services.CandidatServiceImpl;
+import com.hoja.cnprapi.services.PaymentModeServiceImpl;
+import com.hoja.cnprapi.services.PaymentServiceImpl;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -29,21 +33,33 @@ public class PaymentController {
 
 	@Autowired
 	CandidatServiceImpl candidatServiceImpl;
+	
+	@Autowired
+	PaymentServiceImpl paymentServiceImpl;
+	
+	@Autowired
+	PaymentModeServiceImpl paymentModeServiceImpl;
+	
+	
 
-//	@PostMapping("/auth")
-//	  public ResponseEntity<ViewUser> createAutoEcole(@RequestBody ViewUser login) {
-//		//bcrypted password 12345=? $2a$10$YmXE9lJhYOi7xt9CGISPeuR1XWtBdmFTeYaP/7UZ6Sj8HDgfE3nxy
-//	    	//List<ViewUser> foundUserList = vwUserRepo.findByusernameAndEnabled(login.getUsername(),true);
-//	    	List<ViewUser> foundUserList = vwUserRepo.findByusername(login.getUsername());
-//	    	//System.out.println("Found user list size : "+foundUserList.size());
-//	    	if(foundUserList.size()>0) {
-//	    		
-//	    		ViewUser successLogin = foundUserList.get(0);
-//	    		 return new ResponseEntity<>(successLogin, HttpStatus.CREATED);
-//	    	}
-//	    	return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-//	    
-//	  }
+	@PostMapping("/registerPayment")
+	  public ResponseEntity<CnprPayment> registerPayment(@RequestBody CnprPayment payment) {
+		//bcrypted password 12345=? $2a$10$YmXE9lJhYOi7xt9CGISPeuR1XWtBdmFTeYaP/7UZ6Sj8HDgfE3nxy
+	    	//List<ViewUser> foundUserList = vwUserRepo.findByusernameAndEnabled(login.getUsername(),true);
+		try {
+			PaymentMode paymentMode = paymentModeServiceImpl.getPaymentModeByDesignation(payment.getBank());
+			
+			payment.setPaymentMode(paymentMode);
+			CnprPayment reguisteredPayment = paymentServiceImpl.savePayment(payment);
+			
+				return new ResponseEntity<>(reguisteredPayment, HttpStatus.OK);
+
+
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	    
+	  }
 	@PostMapping("/checkCandidat")
 	public ResponseEntity<String> getCandidatInfo(@RequestBody Candidat candidat) {
 		try {

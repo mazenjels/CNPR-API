@@ -40,6 +40,9 @@ public class CnprPayment {
 	@Column(name="candidat_code")
 	private String candidatCode;
 	
+	@Column(name="bank")
+	private String bank;
+	
 	
 	@Column(name = "active_status")
 	private boolean activeStatus=false;
@@ -183,6 +186,16 @@ public class CnprPayment {
 
 	public void setAutoEcole(CnprAutoEcole autoEcole) {
 		this.autoEcole = autoEcole;
+	}
+
+
+	public String getBank() {
+		return bank;
+	}
+
+
+	public void setBank(String bank) {
+		this.bank = bank;
 	}
 
 	
