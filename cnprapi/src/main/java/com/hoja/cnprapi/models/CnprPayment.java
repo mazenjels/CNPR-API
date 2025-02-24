@@ -40,9 +40,24 @@ public class CnprPayment {
 	@Column(name="candidat_code")
 	private String candidatCode;
 	
-	@Column(name="bank")
-	private String bank;
+	@Column(name="transaction_id")
+	private String transactionId;
 	
+	@Column(name="bank_branch")
+	private String bankBranch;
+	
+	@Column(name="payment_status")
+	private String paymentStatus;
+	
+	
+	@Column(name="bank")
+	private String bank;	
+	
+	@Column(name="motif")
+	private String motif;	
+	
+	@Column(name="bank_transaction_time")
+	private String bankTransactionTime;
 	
 	@Column(name = "active_status")
 	private boolean activeStatus=false;
@@ -80,6 +95,16 @@ public class CnprPayment {
 
 	public void setCreatedBy(CnprUser createdBy) {
 		this.createdBy = createdBy;
+	}
+
+
+	public String getBankTransactionTime() {
+		return bankTransactionTime;
+	}
+
+
+	public void setBankTransactionTime(String bankTransactionTime) {
+		this.bankTransactionTime = bankTransactionTime;
 	}
 
 
@@ -139,6 +164,16 @@ public class CnprPayment {
 	}
 
 
+	public String getMotif() {
+		return motif;
+	}
+
+
+	public void setMotif(String motif) {
+		this.motif = motif;
+	}
+
+
 	public PaymentMode getPaymentMode() {
 		return paymentMode;
 	}
@@ -189,6 +224,36 @@ public class CnprPayment {
 	}
 
 
+	public String getTransactionId() {
+		return transactionId;
+	}
+
+
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
+	}
+
+
+	public String getBankBranch() {
+		return bankBranch;
+	}
+
+
+	public void setBankBranch(String bankBranch) {
+		this.bankBranch = bankBranch;
+	}
+
+
+	public String getPaymentStatus() {
+		return paymentStatus;
+	}
+
+
+	public void setPaymentStatus(String paymentStatus) {
+		this.paymentStatus = paymentStatus;
+	}
+
+
 	public String getBank() {
 		return bank;
 	}
@@ -198,7 +263,6 @@ public class CnprPayment {
 		this.bank = bank;
 	}
 
-	
 	
 	
 }

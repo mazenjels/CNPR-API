@@ -151,20 +151,22 @@ public class CandidatServiceImpl implements CandidatService {
 			// for (Map.Entry<QuestionDTO, Object> entry : mapQuestionTitles.entrySet()) {
 			// String qTitle = entry.getKey();
 
+			JSONObject jsonCandidat = null;
 			if (optionalCandidat.isPresent()) {
 				jsonObj = new JSONObject();
 				Candidat candidat = optionalCandidat.get();
 
 				//jsonObj.put("id", candidat.getId());
-				jsonObj.put("nom", candidat.getNom());
-				jsonObj.put("postnom", candidat.getPostnom());
-				jsonObj.put("prenom", candidat.getPrenom());
-				jsonObj.put("phone", candidat.getPhone());
-				jsonObj.put("email", candidat.getEmail());
+				jsonCandidat = new JSONObject();			
+				jsonCandidat.put("firstname", candidat.getNom());
+				jsonCandidat.put("lastname", candidat.getPostnom());
+				jsonCandidat.put("nickname", candidat.getPrenom());
+				//jsonObj.put("phone", candidat.getPhone());
+				//jsonObj.put("email", candidat.getEmail());
 				//jsonObj.put("dateNaissance", candidat.getDateNaissance());
-				//jsonObj.put("lieuNaissance", candidat.getLieuNaissance());
-				jsonObj.put("customerUniqueCode", candidat.getCodeUnique());
-				jsonObj.put("isCustomerUniqueCodeValid", candidat.isCodeValide());
+				jsonObj.put("customer", jsonCandidat);
+				jsonObj.put("codeUnique", candidat.getCodeUnique());
+				//jsonObj.put("isCustomerUniqueCodeValid", candidat.isCodeValide());
 				//jsonObj.put("typePieceIdentite", candidat.getTypePieceIdentite());
 				//jsonObj.put("numeroPieceIdentite", candidat.getNumeroPieceIdentite());
 				jsonObj.put("resultCode", 1);
@@ -184,5 +186,33 @@ public class CandidatServiceImpl implements CandidatService {
 		}
 		return null;
 	}
+
+	public boolean saveOrUpdateCandidat(Candidat pers) {
+		Candidat candidat = candidatRepository.save(pers);
+
+		if (candidatRepository.findById(candidat.getId()) != null) {
+			return true;
+		}
+		return false;
+	}
+	
+	public  String shuffleString(String input) {
+        // Convert the string to a list of characters
+        List<Character> characters = new ArrayList<>();
+        for (char c : input.toCharArray()) {
+            characters.add(c);
+        }
+
+        // Shuffle the list
+        Collections.shuffle(characters);
+
+        // Convert the list back to a string
+        StringBuilder shuffled = new StringBuilder();
+        for (char c : characters) {
+            shuffled.append(c);
+        }
+
+        return shuffled.toString();
+    }
 
 }
