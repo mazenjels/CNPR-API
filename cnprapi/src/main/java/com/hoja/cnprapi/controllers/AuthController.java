@@ -62,6 +62,7 @@ public class AuthController {
 	public ResponseEntity<Candidat> subscribe(@RequestBody Candidat candidat) {
 
 		try {
+			System.out.println("auto ecole id : "+candidat.getCnprAutoEcole().getId());
 			CnprAutoEcole autoEcole = autoEcoleServiceImpl.getAutoEcoleById(1);
 			//autoEcole.setId(1);
 			candidat.setCnprAutoEcole(autoEcole);

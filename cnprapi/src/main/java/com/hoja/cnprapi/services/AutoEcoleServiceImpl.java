@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,22 @@ public class AutoEcoleServiceImpl implements AutoEcoleService{
 	public Optional<CnprAutoEcole> getAutoEcole(long id) {
 		// TODO Auto-generated method stub
 		return (Optional<CnprAutoEcole>)autoEcoleRepo.getAutoEcoleById(id);
+	}
+
+
+	@SuppressWarnings("unchecked")
+	public String getAllJsonActiveAutoecole() {
+		JSONArray jsonArray = new JSONArray();
+		
+		
+		List<CnprAutoEcole> autoEcoles = autoEcoleRepo.getAllEcoles();
+		autoEcoles.forEach(e->{
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("id", e.getId());
+			jsonObj.put("title", e.getDesignation());
+			jsonArray.add(jsonObj);	
+		});
+		return (jsonArray.toString());
 	}
 
 

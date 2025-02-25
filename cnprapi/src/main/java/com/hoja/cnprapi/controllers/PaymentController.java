@@ -1,16 +1,10 @@
 package com.hoja.cnprapi.controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +15,6 @@ import com.hoja.cnprapi.models.CnprAutoEcole;
 import com.hoja.cnprapi.models.CnprPayment;
 import com.hoja.cnprapi.models.CnprUser;
 import com.hoja.cnprapi.models.PaymentMode;
-import com.hoja.cnprapi.models.ViewAutoEcole;
-import com.hoja.cnprapi.models.ViewUser;
-import com.hoja.cnprapi.repository.ViewUserRepository;
 import com.hoja.cnprapi.services.CandidatServiceImpl;
 import com.hoja.cnprapi.services.PaymentModeServiceImpl;
 import com.hoja.cnprapi.services.PaymentServiceImpl;

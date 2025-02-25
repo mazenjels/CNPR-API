@@ -95,6 +95,10 @@ public class Candidat {
 	@JsonIgnore
 	private CnprAutoEcole cnprAutoEcole;
 	
+	public Candidat() {
+		this.cnprAutoEcole = new CnprAutoEcole();
+	}
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "createdBy", nullable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
@@ -102,10 +106,7 @@ public class Candidat {
 	private CnprUser createdBy;
 
 
-	public Candidat() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+	
 
 	public long getId() {
 		return id;
