@@ -9,6 +9,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,8 +62,8 @@ public class AuthController {
 
 	@CrossOrigin(origins = "*")
 	@PostMapping("/subscribe")
-	public ResponseEntity<Candidat> subscribe(@RequestBody Candidat candidat) {
-
+	public ResponseEntity<Candidat> subscribe(@RequestBody Candidat candidat,HttpServletRequest request) {
+		HttpSession session = request.getSession();
 		try {
 //			System.out.println("auto ecole id : "+candidat.getCnprAutoEcole().getId());
 			CnprAutoEcole autoEcole = autoEcoleServiceImpl.getAutoEcoleById(1);
@@ -95,6 +98,10 @@ public class AuthController {
 			candidat.setCodeUnique(codeUnique);
 			
 			boolean created= this.candidatService.saveOrUpdateCandidat(candidat);
+			
+			 session.setAttribute("monCodeUnique", candidat.getCodeUnique());
+			 session.setAttribute("ajaxData", "Some data from AJAX response");
+			 
 			return new ResponseEntity<>(candidat, HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
