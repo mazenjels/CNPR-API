@@ -1,5 +1,6 @@
 package com.hoja.cnprapi.controllers;
 
+import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -13,12 +14,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hoja.cnprapi.models.Candidat;
@@ -28,6 +32,19 @@ import com.hoja.cnprapi.models.ViewUser;
 import com.hoja.cnprapi.repository.ViewUserRepository;
 import com.hoja.cnprapi.services.AutoEcoleServiceImpl;
 import com.hoja.cnprapi.services.CandidatServiceImpl;
+import com.hoja.cnprapi.utils.PdfHeader;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -36,10 +53,10 @@ public class AuthController {
 
 	@Autowired
 	ViewUserRepository vwUserRepo;
-	
+
 	@Autowired
 	CandidatServiceImpl candidatService;
-	
+
 	@Autowired
 	AutoEcoleServiceImpl autoEcoleServiceImpl;
 
@@ -62,23 +79,23 @@ public class AuthController {
 
 	@CrossOrigin(origins = "*")
 	@PostMapping("/subscribe")
-	public ResponseEntity<Candidat> subscribe(@RequestBody Candidat candidat,HttpServletRequest request) {
+	public ResponseEntity<Candidat> subscribe(@RequestBody Candidat candidat, HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		try {
 //			System.out.println("auto ecole id : "+candidat.getCnprAutoEcole().getId());
 			CnprAutoEcole autoEcole = autoEcoleServiceImpl.getAutoEcoleById(1);
-			//CnprAutoEcole autoEcole = new CnprAutoEcole();
-			//autoEcole.setId(1);
+			// CnprAutoEcole autoEcole = new CnprAutoEcole();
+			// autoEcole.setId(1);
 			candidat.setCnprAutoEcole(autoEcole);
 			candidat.setLieuNaissance("Na");
-			
+
 			CnprUser user = new CnprUser();
 			user.setId(3);
 			candidat.setCreatedBy(user);
-			
+
 //			Candidat candidat = candidatService.getCandidatById(id);
 //			candidat.setRecyclageValide(true);
-			
+
 			DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 			String currentDateTime = dateFormatter.format(new Date());
 
@@ -91,17 +108,17 @@ public class AuthController {
 			int hour = calendar.get(Calendar.HOUR_OF_DAY);
 			int min = calendar.get(Calendar.MINUTE);
 			int sec = calendar.get(Calendar.SECOND);
-			
-			String codeUnique=""+year;//202521133656
-			String times= ""+currentMonth.getValue()+day+hour+min+sec;
-			codeUnique=autoEcole.getCodeUnique()+"-"+year+candidatService.shuffleString(times);
+
+			String codeUnique = "" + year;// 202521133656
+			String times = "" + currentMonth.getValue() + day + hour + min + sec;
+			codeUnique = autoEcole.getCodeUnique() + "-" + year + candidatService.shuffleString(times);
 			candidat.setCodeUnique(codeUnique);
-			
-			boolean created= this.candidatService.saveOrUpdateCandidat(candidat);
-			
-			 session.setAttribute("monCodeUnique", candidat.getCodeUnique());
-			 session.setAttribute("ajaxData", "Some data from AJAX response");
-			 
+
+			boolean created = this.candidatService.saveOrUpdateCandidat(candidat);
+
+			session.setAttribute("monCodeUnique", candidat.getCodeUnique());
+			session.setAttribute("ajaxData", "Some data from AJAX response");
+
 			return new ResponseEntity<>(candidat, HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -109,4 +126,190 @@ public class AuthController {
 		}
 
 	}
+
+	@CrossOrigin(origins = "*")
+	@GetMapping("/download")
+	public ResponseEntity<byte[]> downloadPdf() {
+		try {
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			Document document = new Document(PageSize.A4.rotate());
+			PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
+			PdfHeader event = new PdfHeader(
+					"COMMISSION NATIONALE DE PREVENTION ROUTIERE * REPUBLIQUE DEMOCRATIQUE DU CONGO");
+			writer.setPageEvent(event);
+
+			Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+
+			document.open();
+
+			String currDir = "";
+
+			String os = System.getProperty("os.name").toLowerCase();
+			if (os.contains("win")) {
+				// Operating system is based on Windows
+				currDir = "/cnpr/logo/cnpr.png";
+
+//    				Image To_be_Added = Image.getInstance(currDir);
+//    				// To_be_Added.setAbsolutePosition(0f, 0f);
+//    				To_be_Added.setAlignment(Image.RIGHT);
+//    				To_be_Added.scaleAbsolute(75, 75);
+				//
+//    				 To_be_Added.setAlignment(Image.RIGHT | Image.TEXTWRAP);
+//    				 To_be_Added.setBorder(Image.BOX);
+//    				 To_be_Added.setBorderWidth(15);
+				//
+//    				document.add(To_be_Added);
+			}
+
+			PdfPTable table = new PdfPTable(1);
+			table.setWidthPercentage(33f);
+			table.setHorizontalAlignment(Element.ALIGN_LEFT);
+			table.setWidths(new float[] { 10.0f });
+			table.setSpacingAfter(30);
+
+			PdfPCell cell = null;
+			font.setSize(10);
+
+			Image img = Image.getInstance(currDir);
+			img.setAlignment(Image.ALIGN_LEFT);//
+			img.scaleAbsolute(50f, 50f);
+			cell = new PdfPCell(img);
+			// cell.setVerticalAlignment(Element.ALIGN_RIGHT);
+			// cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+			cell.setBorder(0);
+			table.addCell(cell);
+
+			document.add(table);
+
+			//////////////////
+			font.setSize(14);
+			Paragraph p = new Paragraph("Titre", font);
+			p.setAlignment(Paragraph.ALIGN_CENTER);
+			document.add(p);
+
+			font.setSize(12);
+			p = new Paragraph("Titre 2", font);
+			p.setAlignment(Paragraph.ALIGN_CENTER);
+			document.add(p);
+
+			table = new PdfPTable(1);
+			table.setWidthPercentage(33f);
+			table.setHorizontalAlignment(Element.ALIGN_LEFT);
+			table.setWidths(new float[] { 10.0f });
+			table.setSpacingBefore(20);
+
+			document.add(table);
+			
+			table = new PdfPTable(3);
+			table.setWidthPercentage(100f);
+			table.setWidths(new float[] { 3f, 3f, 3f});
+			table.setSpacingBefore(10);
+
+			writeTableHeader(table);
+			//writeTableData(table);
+
+			document.add(table);
+			
+			document.add(new Paragraph("Hello, this is a generated PDF using iText 5.5!"));
+			document.close();
+
+			// Convert to byte array
+			byte[] pdfBytes = byteArrayOutputStream.toByteArray();
+
+			// Set response headers
+			HttpHeaders headers = new HttpHeaders();
+			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bordereau.pdf");
+			headers.add(HttpHeaders.CONTENT_TYPE, "application/pdf");
+
+			return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+	
+	private void writeTableHeader(PdfPTable table) {
+
+		Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+		font.setSize(9.0f);
+		PdfPCell cell = new PdfPCell();
+		// cell.setBackgroundColor(Color.BLUE);
+		// cell.setPadding(5);
+
+		/////////////////////////////////////////////////////////////
+
+		// font.setColor(Color.WHITE);
+
+		cell = new PdfPCell();
+		cell.setPhrase(new Phrase("REFERENCE", font));
+		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+		table.addCell(cell);
+		
+	
+		cell = new PdfPCell();
+		cell.setPhrase(new Phrase("MONTANT A PAYER", font));
+		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+		table.addCell(cell);
+
+		cell = new PdfPCell();
+		cell.setPhrase(new Phrase("STATUT DE PAIEMENT", font));
+		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+		table.addCell(cell);
+
+	}
+
+//	private void writeTableData(PdfPTable table) {
+//		Font font = FontFactory.getFont(FontFactory.HELVETICA);
+//		font.setSize(9.0f);
+//		PdfPCell cell = null;
+//		long count = 1;
+//		for (CourseVehicule maj : majList) {
+//
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(count + ""));
+//			table.addCell(cell);
+//			
+//			
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getDriver().getFullname(), font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getFrom(), font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getStartDate()+" "+maj.getStartTime(), font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getDestination(), font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getEndTime(), font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//			
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getPassengers(), font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getStartKm()+"", font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//			
+//			cell = new PdfPCell();
+//			cell.setPhrase(new Phrase(maj.getEndKm()+"", font));
+//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//			table.addCell(cell);
+//			count++;
+//		}
+//	}
+
 }
