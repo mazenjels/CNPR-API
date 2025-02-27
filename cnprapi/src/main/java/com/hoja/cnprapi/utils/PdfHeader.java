@@ -36,7 +36,7 @@ public class PdfHeader extends PdfPageEventHelper {
 		font.setSize(9.0f);
 		ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase(footerText, font), 200,
 				30, 0);
-		ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_RIGHT,new Phrase("page " + document.getPageNumber()), 630, 30, 0);
+		//ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_RIGHT,new Phrase("page " + document.getPageNumber()), 630, 30, 0);
 	}
 
 	public PdfHeader(String footerText) {

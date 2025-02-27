@@ -16,11 +16,15 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @SuppressWarnings("unused")
 public class PdfUtilsBordereau {
@@ -96,98 +100,92 @@ public class PdfUtilsBordereau {
 	}
 
 	public void export(HttpServletResponse response) throws DocumentException, IOException {
-		Document document = new Document(PageSize.A4.rotate());
-		PdfWriter writer = PdfWriter.getInstance(document, response.getOutputStream());
+		try {
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			Document document = new Document(PageSize.A4.rotate());
+			PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
+			PdfHeader event = new PdfHeader(
+					"COMMISSION NATIONALE DE PREVENTION ROUTIERE * REPUBLIQUE DEMOCRATIQUE DU CONGO");
+			writer.setPageEvent(event);
 
-		PdfHeader event = new PdfHeader("MINSITERE DES TRANSPORTS * " + title);
-		writer.setPageEvent(event);
+			Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
 
-		document.open();
-		Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+			document.open();
 
-		// font.setColor(Color.BLUE);
+			String currDir = "";
 
-		String currDir = "";
+			String os = System.getProperty("os.name").toLowerCase();
+			if (os.contains("win")) {
+				// Operating system is based on Windows
+				currDir = "/cnpr/logo/cnpr.png";
 
-		String os = System.getProperty("os.name").toLowerCase();
-		//if (os.contains("win")) {
-			// Operating system is based on Windows
-			currDir = "/cnpr/logo/cnpr.png";
+//    				Image To_be_Added = Image.getInstance(currDir);
+//    				// To_be_Added.setAbsolutePosition(0f, 0f);
+//    				To_be_Added.setAlignment(Image.RIGHT);
+//    				To_be_Added.scaleAbsolute(75, 75);
+				//
+//    				 To_be_Added.setAlignment(Image.RIGHT | Image.TEXTWRAP);
+//    				 To_be_Added.setBorder(Image.BOX);
+//    				 To_be_Added.setBorderWidth(15);
+				//
+//    				document.add(To_be_Added);
+			}
 
-			Image To_be_Added = Image.getInstance(currDir);
-			// To_be_Added.setAbsolutePosition(0f, 0f);
-			To_be_Added.setAlignment(Image.RIGHT);
-			To_be_Added.scaleAbsolute(75, 75);
+			PdfPTable table = new PdfPTable(1);
+			table.setWidthPercentage(33f);
+			table.setHorizontalAlignment(Element.ALIGN_LEFT);
+			table.setWidths(new float[] { 10.0f });
+			table.setSpacingAfter(30);
 
-			 To_be_Added.setAlignment(Image.RIGHT | Image.TEXTWRAP);
-			 To_be_Added.setBorder(Image.BOX);
-			 To_be_Added.setBorderWidth(15);
+			PdfPCell cell = null;
+			font.setSize(10);
 
-			document.add(To_be_Added);
-		//}
+			Image img = Image.getInstance(currDir);
+			img.setAlignment(Image.ALIGN_LEFT);//
+			img.scaleAbsolute(50f, 50f);
+			cell = new PdfPCell(img);
+			// cell.setVerticalAlignment(Element.ALIGN_RIGHT);
+			// cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+			cell.setBorder(0);
+			table.addCell(cell);
 
-/////////////////////////////////////////////////////////////////////
-		PdfPTable table = new PdfPTable(1);
-		table.setWidthPercentage(33f);
-		table.setHorizontalAlignment(Element.ALIGN_LEFT);
-		table.setWidths(new float[] { 10.0f });
-		table.setSpacingAfter(30);
+			document.add(table);
 
-		PdfPCell cell = null;
-		font.setSize(10);
+			//////////////////
+			font.setSize(14);
+			Paragraph p = new Paragraph("COMMISSION NATION DE PREVENTION ROUTIERE (CNPR)", font);
+			p.setAlignment(Paragraph.ALIGN_CENTER);
+			document.add(p);
 
-		cell = new PdfPCell();
-		cell.setPhrase(new Phrase("MINISTERE DES TRANSPORTS", font));
-		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-		cell.setBorder(0);
-		table.addCell(cell);
+			font.setSize(12);
+			p = new Paragraph("------------------------", font);
+			p.setAlignment(Paragraph.ALIGN_CENTER);
+			document.add(p);
 
-		Image img = Image.getInstance(currDir);
-		img.setAlignment(Image.ALIGN_CENTER);//
-		img.scaleAbsolute(50f, 50f);
-		cell = new PdfPCell(img);
-		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-		cell.setBorder(0);
-		table.addCell(cell);
+			table = new PdfPTable(1);
+			table.setWidthPercentage(33f);
+			table.setHorizontalAlignment(Element.ALIGN_LEFT);
+			table.setWidths(new float[] { 10.0f });
+			table.setSpacingBefore(20);
 
-// table.addCell(createImageCell(currDir));
+			document.add(table);
+			
+			table = new PdfPTable(3);
+			table.setWidthPercentage(100f);
+			table.setWidths(new float[] { 3f, 3f, 3f});
+			table.setSpacingBefore(10);
 
-		cell = new PdfPCell();
-		cell.setPhrase(new Phrase("", font));
-		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-		cell.setBorder(0);
-		table.addCell(cell);
+			writeTableHeader(table);
+			writeTableData(table);
 
-		cell = new PdfPCell();
-		cell.setPhrase(new Phrase(departenement, font));
-		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-		cell.setBorder(0);
-		table.addCell(cell);
-		document.add(table);
+			document.add(table);
+			
+			document.add(new Paragraph("Hello, this is a generated PDF using iText 5.5!"));
+			document.close();
 
-		font.setSize(18);
-		Paragraph p = new Paragraph(title, font);
-		p.setAlignment(Paragraph.ALIGN_CENTER);
-		document.add(p);
-
-		font.setSize(14);
-		p = new Paragraph(typeMaj, font);
-		p.setAlignment(Paragraph.ALIGN_CENTER);
-		document.add(p);
-///////////////////////////////////////////////////////////////////////
-
-		table = new PdfPTable(10);
-		table.setWidthPercentage(100f);
-		table.setWidths(new float[] { 3f, 3f, 3f});
-		table.setSpacingBefore(30);
-
-		writeTableHeader(table);
-		writeTableData(table);
-
-		document.add(table);
-
-		document.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 //	public static ByteArrayOutputStream generatePdfStream(List<Map<String, Object>> queryResults)

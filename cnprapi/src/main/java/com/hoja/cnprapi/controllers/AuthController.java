@@ -1,15 +1,20 @@
 package com.hoja.cnprapi.controllers;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -33,7 +38,9 @@ import com.hoja.cnprapi.repository.ViewUserRepository;
 import com.hoja.cnprapi.services.AutoEcoleServiceImpl;
 import com.hoja.cnprapi.services.CandidatServiceImpl;
 import com.hoja.cnprapi.utils.PdfHeader;
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
@@ -41,9 +48,15 @@ import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.BarcodeQRCode;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 
 @CrossOrigin(origins = "*")
@@ -82,43 +95,52 @@ public class AuthController {
 	public ResponseEntity<Candidat> subscribe(@RequestBody Candidat candidat, HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		try {
-//			System.out.println("auto ecole id : "+candidat.getCnprAutoEcole().getId());
-			CnprAutoEcole autoEcole = autoEcoleServiceImpl.getAutoEcoleById(1);
-			// CnprAutoEcole autoEcole = new CnprAutoEcole();
-			// autoEcole.setId(1);
-			candidat.setCnprAutoEcole(autoEcole);
-			candidat.setLieuNaissance("Na");
+			
+			boolean candaidatExist = candidatService.findCandidatByPhoneNumber(candidat.getPhone());
+			if(candaidatExist) {
+				
+				candidat = new Candidat();
+				candidat.setPhone("exists");
+			}else {
+				System.out.println("auto ecole id : "+candidat.getCnprAutoEcole().getId());
+				CnprAutoEcole autoEcole = autoEcoleServiceImpl.getAutoEcoleById(1);
+				// CnprAutoEcole autoEcole = new CnprAutoEcole();
+				// autoEcole.setId(1);
+				
+				candidat.setCnprAutoEcole(autoEcole);
+				candidat.setLieuNaissance("Na");
 
-			CnprUser user = new CnprUser();
-			user.setId(3);
-			candidat.setCreatedBy(user);
+				CnprUser user = new CnprUser();
+				user.setId(3);
+				candidat.setCreatedBy(user);
 
-//			Candidat candidat = candidatService.getCandidatById(id);
-//			candidat.setRecyclageValide(true);
+//				Candidat candidat = candidatService.getCandidatById(id);
+//				candidat.setRecyclageValide(true);
 
-			DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-			String currentDateTime = dateFormatter.format(new Date());
+				DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+				String currentDateTime = dateFormatter.format(new Date());
 
-			LocalDate currentdate = LocalDate.now();
-			Month currentMonth = currentdate.getMonth();
+				LocalDate currentdate = LocalDate.now();
+				Month currentMonth = currentdate.getMonth();
 
-			Calendar calendar = Calendar.getInstance();
-			int year = calendar.get(Calendar.YEAR);
-			int day = calendar.get(Calendar.DAY_OF_MONTH);
-			int hour = calendar.get(Calendar.HOUR_OF_DAY);
-			int min = calendar.get(Calendar.MINUTE);
-			int sec = calendar.get(Calendar.SECOND);
+				Calendar calendar = Calendar.getInstance();
+				int year = calendar.get(Calendar.YEAR);
+				int day = calendar.get(Calendar.DAY_OF_MONTH);
+				int hour = calendar.get(Calendar.HOUR_OF_DAY);
+				int min = calendar.get(Calendar.MINUTE);
+				int sec = calendar.get(Calendar.SECOND);
 
-			String codeUnique = "" + year;// 202521133656
-			String times = "" + currentMonth.getValue() + day + hour + min + sec;
-			codeUnique = autoEcole.getCodeUnique() + "-" + year + candidatService.shuffleString(times);
-			candidat.setCodeUnique(codeUnique);
+				String codeUnique = "" + year;// 202521133656
+				String times = "" + currentMonth.getValue() + day + hour + min + sec;
+				codeUnique = autoEcole.getCodeUnique() + "-" + year + candidatService.shuffleString(times);
+				candidat.setCodeUnique(codeUnique);
 
-			boolean created = this.candidatService.saveOrUpdateCandidat(candidat);
+				boolean created = this.candidatService.saveOrUpdateCandidat(candidat);
 
-			session.setAttribute("monCodeUnique", candidat.getCodeUnique());
-			session.setAttribute("ajaxData", "Some data from AJAX response");
-
+				session.setAttribute("monCodeUnique", candidat.getCodeUnique());
+				//session.setAttribute("ajaxData", "Some data from AJAX response");
+			}
+//			
 			return new ResponseEntity<>(candidat, HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -129,13 +151,17 @@ public class AuthController {
 
 	@CrossOrigin(origins = "*")
 	@GetMapping("/download")
-	public ResponseEntity<byte[]> downloadPdf() {
+	public ResponseEntity<byte[]> downloadPdf(@RequestParam String key) throws DocumentException, IOException{
 		try {
+			Candidat candidat = candidatService.findCandidatByCodeUnique(key).get();
+			List<Candidat> candidatList  = new ArrayList<Candidat>();
+			candidatList.add(candidat);
+			
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			Document document = new Document(PageSize.A4.rotate());
 			PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
 			PdfHeader event = new PdfHeader(
-					"COMMISSION NATIONALE DE PREVENTION ROUTIERE * REPUBLIQUE DEMOCRATIQUE DU CONGO");
+					"COMMISSION NATIONALE DE PREVENTION ROUTIERE");
 			writer.setPageEvent(event);
 
 			Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
@@ -183,12 +209,12 @@ public class AuthController {
 
 			//////////////////
 			font.setSize(14);
-			Paragraph p = new Paragraph("Titre", font);
+			Paragraph p = new Paragraph("BORDEREAU DE PAIEMENT", font);
 			p.setAlignment(Paragraph.ALIGN_CENTER);
 			document.add(p);
 
 			font.setSize(12);
-			p = new Paragraph("Titre 2", font);
+			p = new Paragraph("------------------------", font);
 			p.setAlignment(Paragraph.ALIGN_CENTER);
 			document.add(p);
 
@@ -206,11 +232,18 @@ public class AuthController {
 			table.setSpacingBefore(10);
 
 			writeTableHeader(table);
-			//writeTableData(table);
+			writeTableData(table,candidatList);
 
 			document.add(table);
 			
-			document.add(new Paragraph("Hello, this is a generated PDF using iText 5.5!"));
+			document.add(new Paragraph("* Veuillez vous rendre avec ce bordereau dans l'un de nos points de paiement pour payer le montant.", font));
+			document.add(new Paragraph("* Kende na mukanda oyo na bisika na biso pona ko futa mbongo.", font));
+			
+			String qrText = candidat.getCodeUnique();
+			Image qrImage = generateQRCodeImage(qrText, 200, 200);
+			
+			document.add(qrImage);
+			
 			document.close();
 
 			// Convert to byte array
@@ -218,7 +251,7 @@ public class AuthController {
 
 			// Set response headers
 			HttpHeaders headers = new HttpHeaders();
-			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bordereau.pdf");
+			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bordereau_"+candidat.getCodeUnique()+".pdf");
 			headers.add(HttpHeaders.CONTENT_TYPE, "application/pdf");
 
 			return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
@@ -227,7 +260,7 @@ public class AuthController {
 		}
 	}
 	
-	private void writeTableHeader(PdfPTable table) {
+	public void writeTableHeader(PdfPTable table) {
 
 		Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
 		font.setSize(9.0f);
@@ -257,59 +290,52 @@ public class AuthController {
 
 	}
 
-//	private void writeTableData(PdfPTable table) {
-//		Font font = FontFactory.getFont(FontFactory.HELVETICA);
-//		font.setSize(9.0f);
-//		PdfPCell cell = null;
-//		long count = 1;
-//		for (CourseVehicule maj : majList) {
-//
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(count + ""));
-//			table.addCell(cell);
-//			
-//			
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getDriver().getFullname(), font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getFrom(), font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getStartDate()+" "+maj.getStartTime(), font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getDestination(), font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getEndTime(), font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//			
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getPassengers(), font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getStartKm()+"", font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//			
-//			cell = new PdfPCell();
-//			cell.setPhrase(new Phrase(maj.getEndKm()+"", font));
-//			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-//			table.addCell(cell);
-//			count++;
-//		}
-//	}
+	private void writeTableData(PdfPTable table, List<Candidat> list) {
+		Font font = FontFactory.getFont(FontFactory.HELVETICA);
+		font.setSize(9.0f);
+		PdfPCell cell = null;
+		long count = 1;
+		for (Candidat maj : list) {
 
+			cell = new PdfPCell();
+			cell.setPhrase(new Phrase(maj.getCodeUnique()));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			table.addCell(cell);
+			
+			
+			cell = new PdfPCell();
+			cell.setPhrase(new Phrase("30.000 FC", font));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			table.addCell(cell);
+
+			cell = new PdfPCell();
+			cell.setPhrase(new Phrase("En attente", font));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			table.addCell(cell);
+
+			count++;
+		}
+	}
+
+	private static Image generateQRCodeImage(String text, int width, int height) 
+            throws WriterException, IOException, BadElementException {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height);
+
+        // Convert BitMatrix to BufferedImage
+        BufferedImage qrBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                qrBufferedImage.setRGB(x, y, bitMatrix.get(x, y) ? Color.BLACK.getRGB() : Color.WHITE.getRGB());
+            }
+        }
+
+        // Convert BufferedImage to ByteArrayOutputStream
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(qrBufferedImage, "png", baos);
+        byte[] qrImageData = baos.toByteArray();
+
+        // Convert ByteArray to iText Image
+        return Image.getInstance(qrImageData);
+    }
 }

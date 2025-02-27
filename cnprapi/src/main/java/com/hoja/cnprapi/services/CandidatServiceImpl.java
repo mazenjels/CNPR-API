@@ -215,4 +215,15 @@ public class CandidatServiceImpl implements CandidatService {
         return shuffled.toString();
     }
 
+	public boolean findCandidatByPhoneNumber(String phone) {
+		boolean exists = false;
+		Optional<Candidat> optionalCandidat = candidatRepository.findCandidatByPhoneNumber(phone);
+		if(optionalCandidat.isPresent()) {
+			exists= true;
+		}else {
+			exists = false;
+		}
+		return exists;
+	}
+
 }

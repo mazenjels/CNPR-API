@@ -22,4 +22,7 @@ public interface CandidatRepository extends JpaRepository<Candidat, Long> {
     @Query("update Candidat set codeValide=false where codeUnique=?1")
     int updatCodeValidity(String codeUnique);
 
+    @Query("SELECT c FROM Candidat c WHERE c.phone = ?1")
+	Optional<Candidat> findCandidatByPhoneNumber(String phone);
+
 }
