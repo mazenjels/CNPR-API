@@ -104,7 +104,7 @@ public class CandidatServiceImpl implements CandidatService {
 				jsonObj.put("email", candidat.getEmail());
 				jsonObj.put("dateNaissance", candidat.getDateNaissance());
 				jsonObj.put("lieuNaissance", candidat.getLieuNaissance());
-				jsonObj.put("codeUnique", candidat.getCodeUnique());
+				jsonObj.put("reference", candidat.getReference());
 				jsonObj.put("codeUniqueValide", candidat.isCodeValide());
 				jsonObj.put("typePieceIdentite", candidat.getTypePieceIdentite());
 				jsonObj.put("numeroPieceIdentite", candidat.getNumeroPieceIdentite());
@@ -165,7 +165,7 @@ public class CandidatServiceImpl implements CandidatService {
 				//jsonObj.put("email", candidat.getEmail());
 				//jsonObj.put("dateNaissance", candidat.getDateNaissance());
 				jsonObj.put("customer", jsonCandidat);
-				jsonObj.put("codeUnique", candidat.getCodeUnique());
+				jsonObj.put("reference", candidat.getReference());
 				//jsonObj.put("isCustomerUniqueCodeValid", candidat.isCodeValide());
 				//jsonObj.put("typePieceIdentite", candidat.getTypePieceIdentite());
 				//jsonObj.put("numeroPieceIdentite", candidat.getNumeroPieceIdentite());

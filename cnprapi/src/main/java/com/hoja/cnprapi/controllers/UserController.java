@@ -99,7 +99,7 @@ public class UserController {
 	
 	@PostMapping("/auth")
 	public String authenticate(@RequestBody Candidat candidat) {
-		String candidats = candidatService.getCandidat(candidat.getCodeUnique());
+		String candidats = candidatService.getCandidat(candidat.getReference());
 
 		return candidats;
 	}

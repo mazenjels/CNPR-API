@@ -61,7 +61,7 @@ public class Candidat {
 	
 	
 	@Column(name="code_unique")
-	private String codeUnique;
+	private String reference;
 	
 	@Column(name = "code_unique_valide")
 	private boolean codeValide=false;
@@ -120,12 +120,12 @@ public class Candidat {
 
 	
 
-	public String getCodeUnique() {
-		return codeUnique;
+	public String getReference() {
+		return reference;
 	}
 
-	public void setCodeUnique(String codeUnique) {
-		this.codeUnique = codeUnique;
+	public void setReference(String codeUnique) {
+		this.reference = codeUnique;
 	}
 
 	public boolean isRecyclageValide() {

@@ -37,6 +37,7 @@ import com.hoja.cnprapi.models.ViewUser;
 import com.hoja.cnprapi.repository.ViewUserRepository;
 import com.hoja.cnprapi.services.AutoEcoleServiceImpl;
 import com.hoja.cnprapi.services.CandidatServiceImpl;
+import com.hoja.cnprapi.services.EmailService;
 import com.hoja.cnprapi.utils.PdfHeader;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
@@ -64,6 +65,9 @@ import com.google.zxing.qrcode.QRCodeWriter;
 @RequestMapping("/rest/api")
 public class AuthController {
 
+	@Autowired
+    private EmailService emailService;
+	
 	@Autowired
 	ViewUserRepository vwUserRepo;
 
@@ -133,11 +137,11 @@ public class AuthController {
 				String codeUnique = "" + year;// 202521133656
 				String times = "" + currentMonth.getValue() + day + hour + min + sec;
 				codeUnique = autoEcole.getCodeUnique() + "-" + year + candidatService.shuffleString(times);
-				candidat.setCodeUnique(codeUnique);
+				candidat.setReference(codeUnique);
 
 				boolean created = this.candidatService.saveOrUpdateCandidat(candidat);
 
-				session.setAttribute("monCodeUnique", candidat.getCodeUnique());
+				session.setAttribute("monCodeUnique", candidat.getReference());
 				//session.setAttribute("ajaxData", "Some data from AJAX response");
 			}
 //			
@@ -148,6 +152,14 @@ public class AuthController {
 		}
 
 	}
+	
+	 @PostMapping("/send")
+	    public String sendEmail(@RequestParam String to, 
+	                            @RequestParam String subject, 
+	                            @RequestParam String body) {
+	        emailService.sendEmail(to, subject, body);
+	        return "Email sent successfully!";
+	    }
 
 	@CrossOrigin(origins = "*")
 	@GetMapping("/download")
@@ -220,6 +232,11 @@ public class AuthController {
 
 			table = new PdfPTable(1);
 			table.setWidthPercentage(33f);
+			cell = new PdfPCell(new Phrase("Client : "+candidat.getNom()+" "+candidat.getPostnom()+" "+candidat.getPrenom(), font));
+			// cell.setVerticalAlignment(Element.ALIGN_RIGHT);
+			// cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+			cell.setBorder(0);
+			table.addCell(cell);
 			table.setHorizontalAlignment(Element.ALIGN_LEFT);
 			table.setWidths(new float[] { 10.0f });
 			table.setSpacingBefore(20);
@@ -239,7 +256,7 @@ public class AuthController {
 			document.add(new Paragraph("* Veuillez vous rendre avec ce bordereau dans l'un de nos points de paiement pour payer le montant.", font));
 			document.add(new Paragraph("* Kende na mukanda oyo na bisika na biso pona ko futa mbongo.", font));
 			
-			String qrText = candidat.getCodeUnique();
+			String qrText = candidat.getReference();
 			Image qrImage = generateQRCodeImage(qrText, 200, 200);
 			
 			document.add(qrImage);
@@ -251,7 +268,7 @@ public class AuthController {
 
 			// Set response headers
 			HttpHeaders headers = new HttpHeaders();
-			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bordereau_"+candidat.getCodeUnique()+".pdf");
+			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bordereau_"+candidat.getReference()+".pdf");
 			headers.add(HttpHeaders.CONTENT_TYPE, "application/pdf");
 
 			return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
@@ -298,7 +315,7 @@ public class AuthController {
 		for (Candidat maj : list) {
 
 			cell = new PdfPCell();
-			cell.setPhrase(new Phrase(maj.getCodeUnique()));
+			cell.setPhrase(new Phrase(maj.getReference()));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			table.addCell(cell);
 			

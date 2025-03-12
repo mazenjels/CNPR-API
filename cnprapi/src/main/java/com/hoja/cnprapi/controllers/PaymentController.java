@@ -72,7 +72,7 @@ public class PaymentController {
 	@PostMapping("/checkCandidat")
 	public ResponseEntity<String> getCandidatInfo(@RequestBody Candidat candidat) {
 		try {
-			String result = candidatServiceImpl.getInfoCandidat(candidat.getCodeUnique());
+			String result = candidatServiceImpl.getInfoCandidat(candidat.getReference());
 
 			return new ResponseEntity<>(result, HttpStatus.OK);
 

@@ -14,13 +14,13 @@ import com.hoja.cnprapi.models.CnprUser;
 @Repository
 public interface CandidatRepository extends JpaRepository<Candidat, Long> {
 
-    @Query("SELECT c FROM Candidat c WHERE c.codeUnique = ?1")
+    @Query("SELECT c FROM Candidat c WHERE c.reference = ?1")
     Optional<Candidat> findCandidatByCodeUnique(String codeUnique);
     
     @Transactional
     @Modifying
-    @Query("update Candidat set codeValide=false where codeUnique=?1")
-    int updatCodeValidity(String codeUnique);
+    @Query("update Candidat set codeValide=false where reference=?1")
+    int updatCodeValidity(String reference);
 
     @Query("SELECT c FROM Candidat c WHERE c.phone = ?1")
 	Optional<Candidat> findCandidatByPhoneNumber(String phone);

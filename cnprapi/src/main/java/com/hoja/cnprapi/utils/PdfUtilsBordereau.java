@@ -82,7 +82,7 @@ public class PdfUtilsBordereau {
 		for (Candidat maj : majList) {
 
 			cell = new PdfPCell();
-			cell.setPhrase(new Phrase(maj.getCodeUnique()));
+			cell.setPhrase(new Phrase(maj.getReference()));
 			table.addCell(cell);
 
 			cell = new PdfPCell();
