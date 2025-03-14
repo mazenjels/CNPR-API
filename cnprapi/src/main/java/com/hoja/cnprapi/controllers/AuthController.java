@@ -31,13 +31,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hoja.cnprapi.models.Candidat;
+import com.hoja.cnprapi.models.CandidatSubscription;
 import com.hoja.cnprapi.models.CnprAutoEcole;
 import com.hoja.cnprapi.models.CnprUser;
+import com.hoja.cnprapi.models.PrixTypePermisAutoEcole;
 import com.hoja.cnprapi.models.ViewUser;
 import com.hoja.cnprapi.repository.ViewUserRepository;
 import com.hoja.cnprapi.services.AutoEcoleServiceImpl;
 import com.hoja.cnprapi.services.CandidatServiceImpl;
+import com.hoja.cnprapi.services.CandidatSubscriptionServiceImpl;
 import com.hoja.cnprapi.services.EmailService;
+import com.hoja.cnprapi.services.PrixPermisTypeAutoEcoleServiceImpl;
 import com.hoja.cnprapi.utils.PdfHeader;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
@@ -73,6 +77,12 @@ public class AuthController {
 
 	@Autowired
 	CandidatServiceImpl candidatService;
+	
+	@Autowired
+	CandidatSubscriptionServiceImpl candidatSubscriptionService;
+	
+	@Autowired
+	PrixPermisTypeAutoEcoleServiceImpl prixTypeAutoEcoleServiceImpl;
 
 	@Autowired
 	AutoEcoleServiceImpl autoEcoleServiceImpl;
@@ -139,7 +149,20 @@ public class AuthController {
 				codeUnique = autoEcole.getCodeUnique() + "-" + year + candidatService.shuffleString(times);
 				candidat.setReference(codeUnique);
 
-				boolean created = this.candidatService.saveOrUpdateCandidat(candidat);
+				Candidat registeredCandidat = this.candidatService.saveOrUpdateCandidat(candidat);
+				
+				List<PrixTypePermisAutoEcole> listPrixPermis = prixTypeAutoEcoleServiceImpl.getSingleActivePrixTypePermisAutoEcoleByTypePermisAndAutoEcole(registeredCandidat.getCnprAutoEcole().getId(), candidat.getTypePermisId()); 
+				PrixTypePermisAutoEcole prixTypePermis = listPrixPermis.get(0);
+				
+				CandidatSubscription candidatSubscription = new CandidatSubscription();
+				candidatSubscription.setMontantAPayer(prixTypePermis.getPrix());
+				candidatSubscription.setDevise(prixTypePermis.getDevise());
+				candidatSubscription.setPaymentStatus(false);
+				candidatSubscription.setCandidat(registeredCandidat);
+				
+				
+				candidatSubscriptionService.saveOrUpdateCandidatSubscription(candidatSubscription);
+				
 
 				session.setAttribute("monCodeUnique", candidat.getReference());
 				//session.setAttribute("ajaxData", "Some data from AJAX response");
@@ -166,6 +189,9 @@ public class AuthController {
 	public ResponseEntity<byte[]> downloadPdf(@RequestParam String key) throws DocumentException, IOException{
 		try {
 			Candidat candidat = candidatService.findCandidatByCodeUnique(key).get();
+			
+			//List<PrixTypePermisAutoEcole> prixTypePermisAutoEcoleList = prixTypeAutoEcoleServiceImpl.getSingleActivePrixTypePermisAutoEcoleByTypePermisAndAutoEcole(candidat.getCnprAutoEcole().getId(),candidat.get);
+			
 			List<Candidat> candidatList  = new ArrayList<Candidat>();
 			candidatList.add(candidat);
 			

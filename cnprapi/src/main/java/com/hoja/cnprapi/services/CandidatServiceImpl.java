@@ -187,13 +187,13 @@ public class CandidatServiceImpl implements CandidatService {
 		return null;
 	}
 
-	public boolean saveOrUpdateCandidat(Candidat pers) {
+	public Candidat saveOrUpdateCandidat(Candidat pers) {
 		Candidat candidat = candidatRepository.save(pers);
 
 		if (candidatRepository.findById(candidat.getId()) != null) {
-			return true;
+			return candidat;
 		}
-		return false;
+		return null;
 	}
 	
 	public  String shuffleString(String input) {

@@ -41,6 +41,9 @@ public class Candidat {
 	@Column(name="phone")
 	private String phone;
 	
+	@Column(name="type_permis_id")
+	private long typePermisId;
+	
 	@Column(name="email")
 	private String email;
 	
@@ -254,6 +257,14 @@ public class Candidat {
 
 	public void setNumeroPieceIdentite(String numeroPieceIdentite) {
 		this.numeroPieceIdentite = numeroPieceIdentite;
+	}
+
+	public long getTypePermisId() {
+		return typePermisId;
+	}
+
+	public void setTypePermisId(long typePermisId) {
+		this.typePermisId = typePermisId;
 	}
 	
 	

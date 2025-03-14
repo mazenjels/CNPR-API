@@ -52,6 +52,7 @@ public class PaymentController {
 			payment.setCreatedBy(user);
 			payment.setAutoEcole(autoEcole);
 			payment.setActiveStatus(true);
+			payment.setAmount(0);
 
 			CnprPayment registeredPayment = paymentServiceImpl.savePayment(payment);
 
