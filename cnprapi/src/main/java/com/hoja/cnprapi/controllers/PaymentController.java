@@ -70,7 +70,7 @@ public class PaymentController {
 
 	}
 
-	@PostMapping("/checkCandidat")
+	@PostMapping("/paymentCheck")
 	public ResponseEntity<String> getCandidatInfo(@RequestBody Candidat candidat) {
 		try {
 			String result = candidatServiceImpl.getInfoCandidat(candidat.getReference());

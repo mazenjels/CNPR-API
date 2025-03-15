@@ -22,6 +22,7 @@ import com.hoja.cnprapi.models.CnprUserAnswer;
 import com.hoja.cnprapi.dto.QuestionDTO;
 import com.hoja.cnprapi.dto.QuestionReponseDTO;
 import com.hoja.cnprapi.models.Candidat;
+import com.hoja.cnprapi.models.CandidatSubscription;
 import com.hoja.cnprapi.models.CnprAutoEcole;
 import com.hoja.cnprapi.repository.CandidatRepository;
 import com.hoja.cnprapi.repository.CnprUserAnswerRepository;
@@ -34,6 +35,10 @@ public class CandidatServiceImpl implements CandidatService {
 
 	@Autowired
 	CandidatRepository candidatRepository;
+	
+	@Autowired
+	CandidatSubscriptionServiceImpl candidatSubscriptionServiceImpl;
+	
 
 	@Autowired
 	AutoEcoleServiceImpl autoEcoleServiceImpl;
@@ -127,7 +132,17 @@ public class CandidatServiceImpl implements CandidatService {
 
 		try {
 			Optional<Candidat> optionalCandidat = candidatRepository.findCandidatByCodeUnique(codeUnique);
-
+			List<CandidatSubscription> candidatSubscriptionList = candidatSubscriptionServiceImpl.getCandidatSubscriptionByCandidatId(optionalCandidat.get().getId());
+			CandidatSubscription  candidatSubscription = candidatSubscriptionList.get(0);
+			String paymentStatus = "";
+			int resultCode = 1;
+			if(candidatSubscription.isPaymentStatus()==false) {
+				paymentStatus = "pending";
+				resultCode = 1;
+			}else {
+				paymentStatus = "paid";
+				resultCode = 2;
+			}
 			// CnprAutoEcole autoEcole = autoEcoleServiceImpl.getAutoEcoleByCandidatId();
 
 //			List<Long> questionIds = new ArrayList<Long>();
@@ -158,25 +173,25 @@ public class CandidatServiceImpl implements CandidatService {
 
 				//jsonObj.put("id", candidat.getId());
 				jsonCandidat = new JSONObject();			
-				jsonCandidat.put("firstname", candidat.getNom());
-				jsonCandidat.put("lastname", candidat.getPostnom());
-				jsonCandidat.put("nickname", candidat.getPrenom());
+				jsonCandidat.put("first_name", candidat.getNom());
+				jsonCandidat.put("last_name", candidat.getPrenom());
+				jsonCandidat.put("post_name", candidat.getPostnom());
 				//jsonObj.put("phone", candidat.getPhone());
 				//jsonObj.put("email", candidat.getEmail());
 				//jsonObj.put("dateNaissance", candidat.getDateNaissance());
 				jsonObj.put("customer", jsonCandidat);
 				jsonObj.put("reference", candidat.getReference());
-				//jsonObj.put("isCustomerUniqueCodeValid", candidat.isCodeValide());
-				//jsonObj.put("typePieceIdentite", candidat.getTypePieceIdentite());
-				//jsonObj.put("numeroPieceIdentite", candidat.getNumeroPieceIdentite());
+				jsonObj.put("status", paymentStatus);
+				jsonObj.put("currency", candidatSubscription.getDevise());
+				jsonObj.put("amount", candidatSubscription.getMontantAPayer());
 				jsonObj.put("resultCode", 1);
-				jsonObj.put("resultMessage", "Entry found");
+				jsonObj.put("created_at", candidatSubscription.getCreatedAt());
 
 				return (jsonObj.toString());
 			}else {
 				jsonObj = new JSONObject();
 				jsonObj.put("resultMessage", "No entry");
-				jsonObj.put("resultCode", 0);
+				jsonObj.put("resultCode", -1);
 				return (jsonObj.toString());
 			}
 
