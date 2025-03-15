@@ -223,5 +223,10 @@ public class CandidatSubscriptionServiceImpl implements CandidatSubscriptionServ
 		return null;
 	}
 
+	public List<CandidatSubscription> getCandidatSubscriptionByCandidatId(long id) {
+		// TODO Auto-generated method stub
+		return (List<CandidatSubscription>)candidatSubscriptionRepository.getCandidatSubscriptionByCandidatId(id);
+	}
+
 
 }

@@ -86,6 +86,9 @@ public class AuthController {
 
 	@Autowired
 	AutoEcoleServiceImpl autoEcoleServiceImpl;
+	
+	private double prixAPayer =0.0;
+	private String devise="";
 
 	@PostMapping("/auth")
 	public ResponseEntity<ViewUser> createAutoEcole(@RequestBody ViewUser login) {
@@ -190,10 +193,12 @@ public class AuthController {
 		try {
 			Candidat candidat = candidatService.findCandidatByCodeUnique(key).get();
 			
-			//List<PrixTypePermisAutoEcole> prixTypePermisAutoEcoleList = prixTypeAutoEcoleServiceImpl.getSingleActivePrixTypePermisAutoEcoleByTypePermisAndAutoEcole(candidat.getCnprAutoEcole().getId(),candidat.get);
+			List<CandidatSubscription> candidatSubscription = candidatSubscriptionService.getCandidatSubscriptionByCandidatId(candidat.getId());
 			
 			List<Candidat> candidatList  = new ArrayList<Candidat>();
 			candidatList.add(candidat);
+			 prixAPayer = candidatSubscription.get(0).getMontantAPayer();
+			 devise = candidatSubscription.get(0).getDevise();
 			
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			Document document = new Document(PageSize.A4.rotate());
@@ -275,7 +280,7 @@ public class AuthController {
 			table.setSpacingBefore(10);
 
 			writeTableHeader(table);
-			writeTableData(table,candidatList);
+			writeTableData(table,candidatList,prixAPayer,devise);
 
 			document.add(table);
 			
@@ -333,7 +338,7 @@ public class AuthController {
 
 	}
 
-	private void writeTableData(PdfPTable table, List<Candidat> list) {
+	private void writeTableData(PdfPTable table, List<Candidat> list,double prixAPayer,String devise) {
 		Font font = FontFactory.getFont(FontFactory.HELVETICA);
 		font.setSize(9.0f);
 		PdfPCell cell = null;
@@ -347,7 +352,7 @@ public class AuthController {
 			
 			
 			cell = new PdfPCell();
-			cell.setPhrase(new Phrase("30.000 FC", font));
+			cell.setPhrase(new Phrase(prixAPayer+ " "+devise, font));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			table.addCell(cell);
 

@@ -1,5 +1,6 @@
 package com.hoja.cnprapi.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,9 @@ public interface CandidatSubscriptionRepository extends JpaRepository<CandidatSu
 
     @Query("SELECT c FROM CandidatSubscription c WHERE c.candidat.id = ?1")
     Optional<CandidatSubscription> findCandidatSubscriptionByCandidatId(long id);
+
+    @Query("SELECT c FROM CandidatSubscription c WHERE c.candidat.id = ?1")
+	List<CandidatSubscription> getCandidatSubscriptionByCandidatId(long id);
     
 //    @Transactional
 //    @Modifying
